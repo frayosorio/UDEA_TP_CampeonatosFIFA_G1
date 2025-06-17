@@ -1,0 +1,21 @@
+<mat-toolbar>
+    <div class="barraTituloCRUD">
+        Selecciones de Fútbol
+    </div>
+</mat-toolbar>
+
+<div>
+    <mat-form-field appearance="fill">
+        <mat-label>Buscar</mat-label>
+        <input matInput [(ngModel)]="textoBusqueda">
+    </mat-form-field>
+    <button mat-stroked-button color="primary" (click)="buscar()">Buscar</button>
+</div>
+
+<div>
+    <button mat-raised-button color="primary" (click)="agregar()">Agregar</button>
+    <button mat-raised-button color="accent" (click)="modificar()">Modificar</button>
+    <button mat-raised-button color="warn" (click)="eliminar()">Eliminar</button>
+
+    <ngx-datatable></ngx-datatable>
+</div>
