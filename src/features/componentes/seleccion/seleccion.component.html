@@ -17,5 +17,6 @@
     <button mat-raised-button color="accent" (click)="modificar()">Modificar</button>
     <button mat-raised-button color="warn" (click)="eliminar()">Eliminar</button>
 
-    <ngx-datatable class="dark"></ngx-datatable>
+    <ngx-datatable class="dark" [rows]="selecciones" [columns]="columnas" [limit]="10" [headerHeight]="50"
+        [footerHeight]="50" [columnMode]="modoColumna.force" [rowHeight]="'auto'"></ngx-datatable>
 </div>
