@@ -1,50 +1,68 @@
 import { Component } from '@angular/core';
 import { ReferenciasMaterialModule } from '../../../shared/modulos/referencias-material.module';
-import { FormsModule } from '@angular/forms';
 import { ColumnMode, NgxDatatableModule, SelectionType } from '@swimlane/ngx-datatable';
-import { SeleccionService } from '../../../core/servicios/seleccion.service';
-import { Seleccion } from '../../../shared/entidades/Seleccion';
+import { Campeonato } from '../../../shared/entidades/Campeonato';
 import { MatDialog } from '@angular/material/dialog';
-import { SeleccionEditarComponent } from '../seleccion-editar/seleccion-editar.component';
+import { CampeonatoService } from '../../../core/servicios/campeonato.service';
+import { CampeonatoEditarComponent } from '../campeonato-editar/campeonato-editar.component';
 import { DecidirComponent } from '../../../shared/componentes/decidir/decidir.component';
+import { FormsModule } from '@angular/forms';
+import { Seleccion } from '../../../shared/entidades/Seleccion';
+import { SeleccionService } from '../../../core/servicios/seleccion.service';
 
 @Component({
-  selector: 'app-seleccion',
+  selector: 'app-campeonato',
   imports: [
     ReferenciasMaterialModule,
-    FormsModule,
-    NgxDatatableModule
+    NgxDatatableModule,
+    FormsModule
   ],
-  templateUrl: './seleccion.component.html',
-  styleUrl: './seleccion.component.css'
+  templateUrl: './campeonato.component.html',
+  styleUrl: './campeonato.component.css'
 })
-export class SeleccionComponent {
+export class CampeonatoComponent {
 
+  public campeonatos: Campeonato[] = [];
   public selecciones: Seleccion[] = [];
+
   public columnas = [
-    { prop: "nombre", name: "Nombre del Seleccionado" },
-    { prop: "entidad", name: "Entidad regente del Fútbol" }
+    { prop: "nombre", name: "Nombre del Campeonato" },
+    { prop: "año", name: "Año" },
+    { prop: "paisOrganizador.nombre", name: "País Organizador" }
   ];
   public modoColumna = ColumnMode;
   public tipoSeleccion = SelectionType;
 
-  private seleccionEscogida: Seleccion | undefined;
+  private CampeonatoEscogido: Campeonato | undefined;
 
   public textoBusqueda: string = "";
 
-  constructor(private servicioSeleccion: SeleccionService,
+  constructor(private servicioCampeonato: CampeonatoService,
+    private servicioSeleccion: SeleccionService,
     private servicioDialogo: MatDialog
   ) {
     this.listar();
+    this.listarSelecciones();
   }
 
   public escoger(evt: any) {
     if (evt.type == "click") {
-      this.seleccionEscogida = evt.row;
+      this.CampeonatoEscogido = evt.row;
     }
   }
 
   public listar() {
+    this.servicioCampeonato.listar().subscribe({
+      next: (response) => {
+        this.campeonatos = response;
+      },
+      error: (error) => {
+        window.alert(error.message);
+      }
+    });
+  }
+
+  public listarSelecciones() {
     this.servicioSeleccion.listar().subscribe({
       next: (response) => {
         this.selecciones = response;
@@ -57,9 +75,9 @@ export class SeleccionComponent {
 
   public buscar() {
     if (this.textoBusqueda) {
-      this.servicioSeleccion.buscar(this.textoBusqueda).subscribe({
+      this.servicioCampeonato.buscar(this.textoBusqueda).subscribe({
         next: (response) => {
-          this.selecciones = response;
+          this.campeonatos = response;
         },
         error: (error) => {
           window.alert(error.message);
@@ -72,24 +90,31 @@ export class SeleccionComponent {
   }
 
   public agregar() {
-    const dialogo = this.servicioDialogo.open(SeleccionEditarComponent, {
+    const dialogo = this.servicioDialogo.open(CampeonatoEditarComponent, {
       width: "500px",
-      height: "300px",
+      height: "400px",
       data: {
-        encabezado: "Agregando nueva Selección de Fútbol",
-        seleccion: {
+        encabezado: "Agregando nuevo Campeonato de Fútbol",
+        campeonato: {
           id: 0,
           nombre: "",
-          entidad: ""
-        }
+          año: new Date().getFullYear(),
+          paisOrganizador: {
+            id: 0,
+            nombre: "",
+            entidad: ""
+          }
+        },
+        selecciones: this.selecciones
       },
       disableClose: true
     });
 
     dialogo.afterClosed().subscribe({
-      next: (seleccion) => {
-        if (seleccion) {
-          this.servicioSeleccion.agregar(seleccion).subscribe({
+      next: (campeonato) => {
+        if (campeonato) {
+          campeonato.año = campeonato.year;
+          this.servicioCampeonato.agregar(campeonato).subscribe({
             next: (response) => {
               this.listar();
             },
@@ -106,21 +131,24 @@ export class SeleccionComponent {
   }
 
   public modificar() {
-    if (this.seleccionEscogida) {
-      const dialogo = this.servicioDialogo.open(SeleccionEditarComponent, {
+    if (this.CampeonatoEscogido) {
+      this.CampeonatoEscogido.year = this.CampeonatoEscogido.año;
+      const dialogo = this.servicioDialogo.open(CampeonatoEditarComponent, {
         width: "500px",
-        height: "300px",
+        height: "400px",
         data: {
-          encabezado: `Editando la Selección de Fútbol [${this.seleccionEscogida?.nombre}]`,
-          seleccion: this.seleccionEscogida
+          encabezado: `Editando Campeonato de Fútbol [${this.CampeonatoEscogido?.nombre}]`,
+          campeonato: this.CampeonatoEscogido,
+          selecciones: this.selecciones
         },
         disableClose: true
       });
 
       dialogo.afterClosed().subscribe({
-        next: (seleccion) => {
-          if (seleccion) {
-            this.servicioSeleccion.modificar(seleccion).subscribe({
+        next: (campeonato) => {
+          if (campeonato) {
+            campeonato.año = campeonato.year;
+            this.servicioCampeonato.modificar(campeonato).subscribe({
               next: (response) => {
                 this.listar();
               },
@@ -136,18 +164,18 @@ export class SeleccionComponent {
       });
     }
     else {
-      window.alert("Debe escoger una selección de fútbol");
+      window.alert("Debe escoger un campeonato de fútbol");
     }
   }
 
   public eliminar() {
-    if (this.seleccionEscogida) {
+    if (this.CampeonatoEscogido) {
       const dialogo = this.servicioDialogo.open(DecidirComponent, {
         width: "300px",
         height: "200px",
         data: {
-          mensaje: `¿Está seguro de eliminar la selección [${this.seleccionEscogida?.nombre}] ?`,
-          id: this.seleccionEscogida.id
+          mensaje: `¿Está seguro de eliminar el campeonato [${this.CampeonatoEscogido?.nombre}] ?`,
+          id: this.CampeonatoEscogido.id
         },
         disableClose: true
       });
@@ -155,7 +183,7 @@ export class SeleccionComponent {
       dialogo.afterClosed().subscribe({
         next: (id) => {
           if (id) {
-            this.servicioSeleccion.eliminar(id).subscribe({
+            this.servicioCampeonato.eliminar(id).subscribe({
               next: (response) => {
                 if (response) {
                   this.listar();
@@ -176,8 +204,9 @@ export class SeleccionComponent {
       });
     }
     else {
-      window.alert("Debe escoger una selección de fútbol");
+      window.alert("Debe escoger un campeonato de fútbol");
     }
   }
+
 
 }

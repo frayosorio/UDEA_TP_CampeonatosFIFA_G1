@@ -17,7 +17,7 @@
     <button mat-raised-button color="accent" (click)="modificar()">Modificar</button>
     <button mat-raised-button color="warn" (click)="eliminar()">Eliminar</button>
 
-    <ngx-datatable class="dark" [rows]="selecciones" [columns]="columnas" [limit]="10" [headerHeight]="50"
+    <ngx-datatable class="dark" [rows]="campeonatos" [columns]="columnas" [limit]="10" [headerHeight]="50"
         [footerHeight]="50" [columnMode]="modoColumna.force" [rowHeight]="'auto'"
         [selectionType]="tipoSeleccion.single" (activate)="escoger($event)"
         ></ngx-datatable>
